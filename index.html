@@ -79,7 +79,17 @@
   width: 38px;
   height: 38px;
   object-fit: contain;
-    }
+}
+
+/* Logo Hover Animation */
+.brand-logo-img {
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.brand-logo-img:hover {
+  transform: scale(1.10);
+  filter: drop-shadow(0 0 6px rgba(10,60,255,0.6));
+}
 
     .brand-name {
       font-family: "Oswald", sans-serif;
