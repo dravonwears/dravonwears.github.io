@@ -14,8 +14,8 @@ collections:
     slug: "{{slug}}"
     fields:
       - { label: "Title", name: "title", widget: "string" }
-      - { label: "Category", name: "category", widget: "select", options: ["Oversized", "Regular"] }
-      - { label: "Price (₹)", name: "price", widget: "number" }
+      - { label: "Category", name: "category", widget: "select", options: ["Oversized", "Regular", "Bottoms"] }
+      - { label: "Price (₹)", name: "price", widget: "string" }
       - { label: "Description", name: "description", widget: "text" }
       - { label: "Image", name: "image", widget: "image" }
-      - { label: "WhatsApp Text", name: "whatsapp_text", widget: "string", default: "Hi, I want this tee from Dravon." }
+      - { label: "WhatsApp Text", name: "whatsapp", widget: "string", required: false }
