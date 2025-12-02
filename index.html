@@ -862,69 +862,60 @@
   </section>
 
 <script>
+<script>
 async function loadProducts() {
   try {
-    const response = await fetch('/content/products/');
-    const text = await response.text();
+    // Get list of product files from GitHub repo
+    const apiUrl = "https://api.github.com/repos/dravonwears/dravonwears.github.io/contents/content/products";
 
-    const parser = new DOMParser();
-    const htmlDoc = parser.parseFromString(text, "text/html");
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      console.error("Failed to load product list", response.status);
+      return;
+    }
 
-    const links = [...htmlDoc.querySelectorAll("a")]
-      .filter(a => a.href.endsWith(".md"));
+    const files = await response.json();
+
+    // Only .md files
+    const mdFiles = files.filter(f => f.name.endsWith(".md"));
 
     const productList = document.getElementById("product-list");
+    productList.innerHTML = "";
 
-    for (const link of links) {
-      const res = await fetch(link.href);
-      const mdText = await res.text();
+    // Helper to read a field from the markdown front-matter
+    const getField = (text, field) => {
+      const regex = new RegExp(field + ':\\s*"(.*?)"');
+      const match = text.match(regex);
+      return match ? match[1].trim() : "";
+    };
 
-      const get = (pattern) =>
-        (mdText.match(pattern) || ["", ""])[1].trim();
+    for (const file of mdFiles) {
+      // Download the markdown file
+      const mdRes = await fetch(file.download_url);
+      const mdText = await mdRes.text();
 
-      const title = get(/title:\s*"(.*?)"/);
-      const price = get(/price:\s*"(.*?)"/);
-      const img = get(/image:\s*"(.*?)"/);
+      const title = getField(mdText, "title");
+      const price = getField(mdText, "price");
+      const image = getField(mdText, "image");
 
-      const productHTML = `
+      const cardHtml = `
         <div class="product-card">
-          <img src="${img}" alt="${title}" />
-          <h3>${title}</h3>
-          <p class="price">₹${price}</p>
+          ${image ? `<img src="${image}" alt="${title}">` : ""}
+          <h3>${title || "Untitled product"}</h3>
+          ${price ? `<p class="price">₹${price}</p>` : ""}
         </div>
       `;
 
-      productList.innerHTML += productHTML;
+      productList.insertAdjacentHTML("beforeend", cardHtml);
     }
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Error loading products", err);
   }
 }
-loadProducts();
+
+// Run after page loads
+document.addEventListener("DOMContentLoaded", loadProducts);
 </script>
-<style>
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
-  }
-  .product-card img {
-    width: 100%;
-    border-radius: 12px;
-  }
-  .product-card {
-    text-align: center;
-    background: #fff;
-    padding: 12px;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  }
-  .price {
-    font-weight: bold;
-    color: #0a3cff;
-    margin-top: 6px;
-  }
-</style>
   <!-- STORY / ABOUT -->
   <section id="story">
     <div class="container story">
