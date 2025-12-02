@@ -862,58 +862,47 @@
   </section>
 
   <script>
+<script>
 async function loadProducts() {
-  const response = await fetch('/admin/config.yml');
-  const configText = await response.text();
+  try {
+    const response = await fetch('/content/products/');
+    const text = await response.text();
 
-  // Products are stored in /products folder on GitHub
-  const productFiles = await fetch('/products/')
-    .then(res => res.text())
-    .then(text => {
-      const parser = new DOMParser();
-      const html = parser.parseFromString(text, 'text/html');
-      return [...html.querySelectorAll('a')]
-        .filter(link => link.href.endsWith('.md'))
-        .map(link => link.href);
-    });
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(text, "text/html");
 
-  const productList = document.getElementById('product-list');
+    const links = [...htmlDoc.querySelectorAll("a")]
+      .filter(a => a.href.endsWith(".md"));
 
-  for (const file of productFiles) {
-    const md = await fetch(file).then(res => res.text());
+    const productList = document.getElementById("product-list");
 
-    const get = (pattern) => {
-      const match = md.match(pattern);
-      return match ? match[1].trim() : "";
-    };
+    for (const link of links) {
+      const res = await fetch(link.href);
+      const mdText = await res.text();
 
-    const title = get(/title:\s*["']?(.*?)["']?$/m);
-    const price = get(/price:\s*["']?(.*?)["']?$/m);
-    const image = get(/image:\s*["']?(.*?)["']?$/m);
-    const waText = encodeURIComponent(get(/whatsapp:\s*["']?(.*?)["']?$/m));
+      const get = (pattern) =>
+        (mdText.match(pattern) || ["", ""])[1].trim();
 
-    const waNumber = "91XXXXXXXXXX"; // Your WhatsApp number here
-    const waLink = `https://wa.me/${waNumber}?text=${waText}`;
+      const title = get(/title:\s*"(.*?)"/);
+      const price = get(/price:\s*"(.*?)"/);
+      const img = get(/image:\s*"(.*?)"/);
 
-    const imgSrc = image.startsWith('http')
-      ? image
-      : `/products/${image}`;
+      const productHTML = `
+        <div class="product-card">
+          <img src="${img}" alt="${title}" />
+          <h3>${title}</h3>
+          <p class="price">₹${price}</p>
+        </div>
+      `;
 
-    const card = `
-    <div class="product-card">
-      <img src="${imgSrc}" alt="${title}">
-      <h3>${title}</h3>
-      <div class="price">₹${price}</div>
-      <a class="btn btn-primary" href="${waLink}" target="_blank">Order on WhatsApp</a>
-    </div>`;
-
-    productList.innerHTML += card;
+      productList.innerHTML += productHTML;
+    }
+  } catch (err) {
+    console.error("Error:", err);
   }
 }
-
 loadProducts();
 </script>
-
 <style>
   .product-grid {
     display: grid;
