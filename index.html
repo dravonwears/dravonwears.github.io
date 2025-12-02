@@ -861,6 +861,73 @@
     </div>
   </section>
 
+  <!-- PRODUCTS SECTION -->
+<section id="products">
+  <div class="container">
+    <h2 class="section-title">Products</h2>
+    <div id="product-list" class="product-grid"></div>
+  </div>
+</section>
+
+<script>
+  async function loadProducts() {
+    const response = await fetch('/content/products/');
+    const text = await response.text();
+
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(text, "text/html");
+    const links = [...htmlDoc.querySelectorAll("a")].filter(a => a.href.endsWith(".md"));
+
+    const productList = document.getElementById("product-list");
+
+    for (const link of links) {
+      const mdFile = await fetch(link.href).then(r => r.text());
+      const titleMatch = mdFile.match(/title:\s*"(.*?)"/);
+      const priceMatch = mdFile.match(/price:\s*"(.*?)"/);
+      const imgMatch = mdFile.match(/image:\s*"(.*?)"/);
+
+      const title = titleMatch ? titleMatch[1] : "No title";
+      const price = priceMatch ? priceMatch[1] : "₹0";
+      const img = imgMatch ? imgMatch[1] : "hero-shirt.png";
+
+      const productHTML = `
+        <div class="product-card">
+          <img src="${img}" alt="${title}">
+          <h3>${title}</h3>
+          <p class="price">${price}</p>
+        </div>
+      `;
+
+      productList.insertAdjacentHTML("beforeend", productHTML);
+    }
+  }
+
+  loadProducts();
+</script>
+
+<style>
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .product-card img {
+    width: 100%;
+    border-radius: 12px;
+  }
+  .product-card {
+    text-align: center;
+    background: #fff;
+    padding: 12px;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .price {
+    font-weight: bold;
+    color: #0a3cff;
+    margin-top: 6px;
+  }
+</style>
   <!-- STORY / ABOUT -->
   <section id="story">
     <div class="container story">
